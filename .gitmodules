@@ -1,0 +1,3 @@
+[submodule "pyciogen"]
+	path = pyciogen
+	url = git@github.com:jordiae/pyciogen

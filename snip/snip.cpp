@@ -44,12 +44,14 @@
 #include <set>
 #include <string>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 #include "synthesis.hpp"
 #include "cache.hpp"
 #include "string_utils.hpp"
 #include "snip.hpp"
 #include "includes.hpp"
+#include "iospec.hpp"
 
 using namespace clang;
 
@@ -214,10 +216,21 @@ public:
 	  runnable_string += original_function;
 	  runnable_string += "\n";
 
-	  SynthesisResult result = synthesizer.Synthesize(runnable_string);
+	  // build metadata for this function
+	  nlohmann::json metadata;
+	  metadata["function"] = original_function;
+	  metadata["includes"] = getIncludes(CI);
+	  metadata["name"] = FD->getNameAsString();
+
+	  // get the iospec for this function: for synthesis info
+	  IOSpec iospec = build_iospec(FD);
+	  metadata["iospec"] = iospec.to_json();
+
+	  SynthesisResult result = synthesizer.Synthesize(runnable_string, metadata);
 	  llvm::outs() << "Runnable is " << runnable_string << "\n";
 	  llvm::outs() << "Result is " << result.new_function << "\n";
 
+	  llvm::outs() << "Metadata is " << metadata.dump() << "\n";
 
 	  // Now, do the replacement of this fuction body if the code
 	  // was updated.

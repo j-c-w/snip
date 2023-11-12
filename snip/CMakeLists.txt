@@ -17,6 +17,14 @@ find_package(Clang REQUIRED CONFIG)
 # accordingly
 include_directories(SYSTEM "${LLVM_INCLUDE_DIRS};${CLANG_INCLUDE_DIRS}")
 
+include(FetchContent)
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json.git
+  GIT_TAG v3.10.5  # specify the version you need
+)
+FetchContent_MakeAvailable(json)
+
 #===============================================================================
 # 2. LLVM-TUTOR BUILD CONFIGURATION
 #===============================================================================
@@ -31,10 +39,7 @@ endif()
 #===============================================================================
 # 3. ADD THE TARGET
 #===============================================================================
-add_library(snipper SHARED snip.cpp string_utils.cpp includes.cpp)
+add_library(snipper SHARED snip.cpp string_utils.cpp includes.cpp iospec.cpp)
 target_compile_options(snipper PRIVATE -g)
 
-# Allow undefined symbols in shared objects on Darwin (this is the default
-# behaviour on Linux)
-target_link_libraries(snipper
-  "$<$<PLATFORM_ID:Darwin>:-undefined dynamic_lookup>")
+target_link_libraries(snipper PRIVATE nlohmann_json::nlohmann_json)
